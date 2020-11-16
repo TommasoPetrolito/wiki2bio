@@ -52,21 +52,21 @@ class SeqUnit(object):
         self.units = {}
         self.params = {}
 
-        self.encoder_input = tf.placeholder(tf.int32, [None, None])
-        self.encoder_field = tf.placeholder(tf.int32, [None, None])
-        self.encoder_pos = tf.placeholder(tf.int32, [None, None])
-        self.encoder_rpos = tf.placeholder(tf.int32, [None, None])
-        self.decoder_input = tf.placeholder(tf.int32, [None, None])
-        self.encoder_len = tf.placeholder(tf.int32, [None])
-        self.decoder_len = tf.placeholder(tf.int32, [None])
-        self.decoder_output = tf.placeholder(tf.int32, [None, None])
-        self.enc_mask = tf.sign(tf.to_float(self.encoder_pos))
-        with tf.variable_scope(scope_name):
+        self.encoder_input = tf.compat.v1.placeholder(tf.compat.v1.int32, [None, None])
+        self.encoder_field = tf.compat.v1.placeholder(tf.compat.v1.int32, [None, None])
+        self.encoder_pos = tf.compat.v1.placeholder(tf.compat.v1.int32, [None, None])
+        self.encoder_rpos = tf.compat.v1.placeholder(tf.compat.v1.int32, [None, None])
+        self.decoder_input = tf.compat.v1.placeholder(tf.compat.v1.int32, [None, None])
+        self.encoder_len = tf.compat.v1.placeholder(tf.compat.v1.int32, [None])
+        self.decoder_len = tf.compat.v1.placeholder(tf.compat.v1.int32, [None])
+        self.decoder_output = tf.compat.v1.placeholder(tf.compat.v1.int32, [None, None])
+        self.enc_mask = tf.compat.v1.sign(tf.compat.v1.to_float(self.encoder_pos))
+        with tf.compat.v1.variable_scope(scope_name):
             if self.fgate_enc:
-                print 'field-gated encoder LSTM'
+                print('field-gated encoder LSTM')
                 self.enc_lstm = fgateLstmUnit(self.hidden_size, self.uni_size, self.field_encoder_size, 'encoder_select')
             else:
-                print 'normal encoder LSTM'
+                print('normal encoder LSTM')
                 self.enc_lstm = LstmUnit(self.hidden_size, self.uni_size, 'encoder_lstm')
             self.dec_lstm = LstmUnit(self.hidden_size, self.emb_size, 'decoder_lstm')
             self.dec_out = OutputUnit(self.hidden_size, self.target_vocab, 'decoder_output')
@@ -75,27 +75,27 @@ class SeqUnit(object):
                            'decoder_output': self.dec_out})
 
         # ======================================== embeddings ======================================== #
-        with tf.device('/cpu:0'):
-            with tf.variable_scope(scope_name):
-                self.embedding = tf.get_variable('embedding', [self.source_vocab, self.emb_size])
-                self.encoder_embed = tf.nn.embedding_lookup(self.embedding, self.encoder_input)
-                self.decoder_embed = tf.nn.embedding_lookup(self.embedding, self.decoder_input)
+        with tf.compat.v1.device('/cpu:0'):
+            with tf.compat.v1.variable_scope(scope_name):
+                self.embedding = tf.compat.v1.get_variable('embedding', [self.source_vocab, self.emb_size])
+                self.encoder_embed = tf.compat.v1.nn.embedding_lookup(self.embedding, self.encoder_input)
+                self.decoder_embed = tf.compat.v1.nn.embedding_lookup(self.embedding, self.decoder_input)
                 if self.field_concat or self.fgate_enc or self.encoder_add_pos or self.decoder_add_pos:
-                    self.fembedding = tf.get_variable('fembedding', [self.field_vocab, self.field_size])
-                    self.field_embed = tf.nn.embedding_lookup(self.fembedding, self.encoder_field)
+                    self.fembedding = tf.compat.v1.get_variable('fembedding', [self.field_vocab, self.field_size])
+                    self.field_embed = tf.compat.v1.nn.embedding_lookup(self.fembedding, self.encoder_field)
                     self.field_pos_embed = self.field_embed
                     if self.field_concat:
-                        self.encoder_embed = tf.concat([self.encoder_embed, self.field_embed], 2)
+                        self.encoder_embed = tf.compat.v1.concat([self.encoder_embed, self.field_embed], 2)
                 if self.position_concat or self.encoder_add_pos or self.decoder_add_pos:
-                    self.pembedding = tf.get_variable('pembedding', [self.position_vocab, self.pos_size])
-                    self.rembedding = tf.get_variable('rembedding', [self.position_vocab, self.pos_size])
-                    self.pos_embed = tf.nn.embedding_lookup(self.pembedding, self.encoder_pos)
-                    self.rpos_embed = tf.nn.embedding_lookup(self.rembedding, self.encoder_rpos)
+                    self.pembedding = tf.compat.v1.get_variable('pembedding', [self.position_vocab, self.pos_size])
+                    self.rembedding = tf.compat.v1.get_variable('rembedding', [self.position_vocab, self.pos_size])
+                    self.pos_embed = tf.compat.v1.nn.embedding_lookup(self.pembedding, self.encoder_pos)
+                    self.rpos_embed = tf.compat.v1.nn.embedding_lookup(self.rembedding, self.encoder_rpos)
                     if position_concat:
-                        self.encoder_embed = tf.concat([self.encoder_embed, self.pos_embed, self.rpos_embed], 2)
-                        self.field_pos_embed = tf.concat([self.field_embed, self.pos_embed, self.rpos_embed], 2)
+                        self.encoder_embed = tf.compat.v1.concat([self.encoder_embed, self.pos_embed, self.rpos_embed], 2)
+                        self.field_pos_embed = tf.compat.v1.concat([self.field_embed, self.pos_embed, self.rpos_embed], 2)
                     elif self.encoder_add_pos or self.decoder_add_pos:
-                        self.field_pos_embed = tf.concat([self.field_embed, self.pos_embed, self.rpos_embed], 2)
+                        self.field_pos_embed = tf.compat.v1.concat([self.field_embed, self.pos_embed, self.rpos_embed], 2)
 
         if self.field_concat or self.fgate_enc:
             self.params.update({'fembedding': self.fembedding})
@@ -106,22 +106,22 @@ class SeqUnit(object):
 
         # ======================================== encoder ======================================== #
         if self.fgate_enc:
-            print 'field gated encoder used'
+            print('field gated encoder used')
             en_outputs, en_state = self.fgate_encoder(self.encoder_embed, self.field_pos_embed, self.encoder_len)
         else:
-            print 'normal encoder used'
+            print('normal encoder used')
             en_outputs, en_state = self.encoder(self.encoder_embed, self.encoder_len)
         # ======================================== decoder ======================================== #
 
         if self.dual_att:
-	        print 'dual attention mechanism used'
-	        with tf.variable_scope(scope_name):
+	        print('dual attention mechanism used')
+	        with tf.compat.v1.variable_scope(scope_name):
 	            self.att_layer = dualAttentionWrapper(self.hidden_size, self.hidden_size, self.field_attention_size,
 	                                                    en_outputs, self.field_pos_embed, "attention")
 	            self.units.update({'attention': self.att_layer})
         else:
-            print "normal attention used"
-            with tf.variable_scope(scope_name):
+            print("normal attention used")
+            with tf.compat.v1.variable_scope(scope_name):
                 self.att_layer = AttentionWrapper(self.hidden_size, self.hidden_size, en_outputs, "attention")
                 self.units.update({'attention': self.att_layer})
 
@@ -133,120 +133,120 @@ class SeqUnit(object):
         # self.beam_seqs, self.beam_probs, self.cand_seqs, self.cand_probs = self.decoder_beam(en_state, beam_size)
         
 
-        losses = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=de_outputs, labels=self.decoder_output)
-        mask = tf.sign(tf.to_float(self.decoder_output))
+        losses = tf.compat.v1.nn.sparse_softmax_cross_entropy_with_logits(logits=de_outputs, labels=self.decoder_output)
+        mask = tf.compat.v1.sign(tf.compat.v1.to_float(self.decoder_output))
         losses = mask * losses
-        self.mean_loss = tf.reduce_mean(losses)
+        self.mean_loss = tf.compat.v1.reduce_mean(losses)
 
-        tvars = tf.trainable_variables()
-        grads, _ = tf.clip_by_global_norm(tf.gradients(self.mean_loss, tvars), self.grad_clip)
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        tvars = tf.compat.v1.trainable_variables()
+        grads, _ = tf.compat.v1.clip_by_global_norm(tf.compat.v1.gradients(self.mean_loss, tvars), self.grad_clip)
+        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
         self.train_op = optimizer.apply_gradients(zip(grads, tvars))
 
     def encoder(self, inputs, inputs_len):
-        batch_size = tf.shape(self.encoder_input)[0]
-        max_time = tf.shape(self.encoder_input)[1]
+        batch_size = tf.compat.v1.shape(self.encoder_input)[0]
+        max_time = tf.compat.v1.shape(self.encoder_input)[1]
         hidden_size = self.hidden_size
 
-        time = tf.constant(0, dtype=tf.int32)
-        h0 = (tf.zeros([batch_size, hidden_size], dtype=tf.float32),
-              tf.zeros([batch_size, hidden_size], dtype=tf.float32))
-        f0 = tf.zeros([batch_size], dtype=tf.bool)
-        inputs_ta = tf.TensorArray(dtype=tf.float32, size=max_time)
-        inputs_ta = inputs_ta.unstack(tf.transpose(inputs, [1,0,2]))
-        emit_ta = tf.TensorArray(dtype=tf.float32, dynamic_size=True, size=0)
+        time = tf.compat.v1.constant(0, dtype=tf.compat.v1.int32)
+        h0 = (tf.compat.v1.zeros([batch_size, hidden_size], dtype=tf.compat.v1.float32),
+              tf.compat.v1.zeros([batch_size, hidden_size], dtype=tf.compat.v1.float32))
+        f0 = tf.compat.v1.zeros([batch_size], dtype=tf.compat.v1.bool)
+        inputs_ta = tf.compat.v1.TensorArray(dtype=tf.compat.v1.float32, size=max_time)
+        inputs_ta = inputs_ta.unstack(tf.compat.v1.transpose(inputs, [1,0,2]))
+        emit_ta = tf.compat.v1.TensorArray(dtype=tf.compat.v1.float32, dynamic_size=True, size=0)
 
         def loop_fn(t, x_t, s_t, emit_ta, finished):
             o_t, s_nt = self.enc_lstm(x_t, s_t, finished)
             emit_ta = emit_ta.write(t, o_t)
-            finished = tf.greater_equal(t+1, inputs_len)
-            x_nt = tf.cond(tf.reduce_all(finished), lambda: tf.zeros([batch_size, self.uni_size], dtype=tf.float32),
+            finished = tf.compat.v1.greater_equal(t+1, inputs_len)
+            x_nt = tf.compat.v1.cond(tf.compat.v1.reduce_all(finished), lambda: tf.compat.v1.zeros([batch_size, self.uni_size], dtype=tf.compat.v1.float32),
                                      lambda: inputs_ta.read(t+1))
             return t+1, x_nt, s_nt, emit_ta, finished
 
-        _, _, state, emit_ta, _ = tf.while_loop(
-            cond=lambda _1, _2, _3, _4, finished: tf.logical_not(tf.reduce_all(finished)),
+        _, _, state, emit_ta, _ = tf.compat.v1.while_loop(
+            cond=lambda _1, _2, _3, _4, finished: tf.compat.v1.logical_not(tf.compat.v1.reduce_all(finished)),
             body=loop_fn,
             loop_vars=(time, inputs_ta.read(0), h0, emit_ta, f0))
 
-        outputs = tf.transpose(emit_ta.stack(), [1,0,2])
+        outputs = tf.compat.v1.transpose(emit_ta.stack(), [1,0,2])
         return outputs, state
 
     def fgate_encoder(self, inputs, fields, inputs_len):
-        batch_size = tf.shape(self.encoder_input)[0]
-        max_time = tf.shape(self.encoder_input)[1]
+        batch_size = tf.compat.v1.shape(self.encoder_input)[0]
+        max_time = tf.compat.v1.shape(self.encoder_input)[1]
         hidden_size = self.hidden_size
 
-        time = tf.constant(0, dtype=tf.int32)
-        h0 = (tf.zeros([batch_size, hidden_size], dtype=tf.float32),
-              tf.zeros([batch_size, hidden_size], dtype=tf.float32))
-        f0 = tf.zeros([batch_size], dtype=tf.bool)
-        inputs_ta = tf.TensorArray(dtype=tf.float32, size=max_time)
-        inputs_ta = inputs_ta.unstack(tf.transpose(inputs, [1,0,2]))
-        fields_ta = tf.TensorArray(dtype=tf.float32, size=max_time)
-        fields_ta = fields_ta.unstack(tf.transpose(fields, [1,0,2]))
-        emit_ta = tf.TensorArray(dtype=tf.float32, dynamic_size=True, size=0)
+        time = tf.compat.v1.constant(0, dtype=tf.compat.v1.int32)
+        h0 = (tf.compat.v1.zeros([batch_size, hidden_size], dtype=tf.compat.v1.float32),
+              tf.compat.v1.zeros([batch_size, hidden_size], dtype=tf.compat.v1.float32))
+        f0 = tf.compat.v1.zeros([batch_size], dtype=tf.compat.v1.bool)
+        inputs_ta = tf.compat.v1.TensorArray(dtype=tf.compat.v1.float32, size=max_time)
+        inputs_ta = inputs_ta.unstack(tf.compat.v1.transpose(inputs, [1,0,2]))
+        fields_ta = tf.compat.v1.TensorArray(dtype=tf.compat.v1.float32, size=max_time)
+        fields_ta = fields_ta.unstack(tf.compat.v1.transpose(fields, [1,0,2]))
+        emit_ta = tf.compat.v1.TensorArray(dtype=tf.compat.v1.float32, dynamic_size=True, size=0)
 
         def loop_fn(t, x_t, d_t, s_t, emit_ta, finished):
             o_t, s_nt = self.enc_lstm(x_t, d_t, s_t, finished)
             emit_ta = emit_ta.write(t, o_t)
-            finished = tf.greater_equal(t+1, inputs_len)
-            x_nt = tf.cond(tf.reduce_all(finished), lambda: tf.zeros([batch_size, self.uni_size], dtype=tf.float32),
+            finished = tf.compat.v1.greater_equal(t+1, inputs_len)
+            x_nt = tf.compat.v1.cond(tf.compat.v1.reduce_all(finished), lambda: tf.compat.v1.zeros([batch_size, self.uni_size], dtype=tf.compat.v1.float32),
                                      lambda: inputs_ta.read(t+1))
-            d_nt = tf.cond(tf.reduce_all(finished), lambda: tf.zeros([batch_size, self.field_attention_size], dtype=tf.float32),
+            d_nt = tf.compat.v1.cond(tf.compat.v1.reduce_all(finished), lambda: tf.compat.v1.zeros([batch_size, self.field_attention_size], dtype=tf.compat.v1.float32),
                                      lambda: fields_ta.read(t+1))
             return t+1, x_nt, d_nt, s_nt, emit_ta, finished
 
-        _, _, _, state, emit_ta, _ = tf.while_loop(
-            cond=lambda _1, _2, _3, _4, _5, finished: tf.logical_not(tf.reduce_all(finished)),
+        _, _, _, state, emit_ta, _ = tf.compat.v1.while_loop(
+            cond=lambda _1, _2, _3, _4, _5, finished: tf.compat.v1.logical_not(tf.compat.v1.reduce_all(finished)),
             body=loop_fn,
             loop_vars=(time, inputs_ta.read(0), fields_ta.read(0), h0, emit_ta, f0))
 
-        outputs = tf.transpose(emit_ta.stack(), [1,0,2])
+        outputs = tf.compat.v1.transpose(emit_ta.stack(), [1,0,2])
         return outputs, state
 
 
     def decoder_t(self, initial_state, inputs, inputs_len):
-        batch_size = tf.shape(self.decoder_input)[0]
-        max_time = tf.shape(self.decoder_input)[1]
-        encoder_len = tf.shape(self.encoder_input)[1]
+        batch_size = tf.compat.v1.shape(self.decoder_input)[0]
+        max_time = tf.compat.v1.shape(self.decoder_input)[1]
+        encoder_len = tf.compat.v1.shape(self.encoder_input)[1]
 
-        time = tf.constant(0, dtype=tf.int32)
+        time = tf.compat.v1.constant(0, dtype=tf.compat.v1.int32)
         h0 = initial_state
-        f0 = tf.zeros([batch_size], dtype=tf.bool)
-        x0 = tf.nn.embedding_lookup(self.embedding, tf.fill([batch_size], self.start_token))
-        inputs_ta = tf.TensorArray(dtype=tf.float32, size=max_time)
-        inputs_ta = inputs_ta.unstack(tf.transpose(inputs, [1,0,2]))
-        emit_ta = tf.TensorArray(dtype=tf.float32, dynamic_size=True, size=0)
+        f0 = tf.compat.v1.zeros([batch_size], dtype=tf.compat.v1.bool)
+        x0 = tf.compat.v1.nn.embedding_lookup(self.embedding, tf.compat.v1.fill([batch_size], self.start_token))
+        inputs_ta = tf.compat.v1.TensorArray(dtype=tf.compat.v1.float32, size=max_time)
+        inputs_ta = inputs_ta.unstack(tf.compat.v1.transpose(inputs, [1,0,2]))
+        emit_ta = tf.compat.v1.TensorArray(dtype=tf.compat.v1.float32, dynamic_size=True, size=0)
 
         def loop_fn(t, x_t, s_t, emit_ta, finished):
             o_t, s_nt = self.dec_lstm(x_t, s_t, finished)
             o_t, _ = self.att_layer(o_t)
             o_t = self.dec_out(o_t, finished)
             emit_ta = emit_ta.write(t, o_t)
-            finished = tf.greater_equal(t, inputs_len)
-            x_nt = tf.cond(tf.reduce_all(finished), lambda: tf.zeros([batch_size, self.emb_size], dtype=tf.float32),
+            finished = tf.compat.v1.greater_equal(t, inputs_len)
+            x_nt = tf.compat.v1.cond(tf.compat.v1.reduce_all(finished), lambda: tf.compat.v1.zeros([batch_size, self.emb_size], dtype=tf.compat.v1.float32),
                                      lambda: inputs_ta.read(t))
             return t+1, x_nt, s_nt, emit_ta, finished
 
-        _, _, state, emit_ta,  _ = tf.while_loop(
-            cond=lambda _1, _2, _3, _4, finished: tf.logical_not(tf.reduce_all(finished)),
+        _, _, state, emit_ta,  _ = tf.compat.v1.while_loop(
+            cond=lambda _1, _2, _3, _4, finished: tf.compat.v1.logical_not(tf.compat.v1.reduce_all(finished)),
             body=loop_fn,
             loop_vars=(time, x0, h0, emit_ta, f0))
 
-        outputs = tf.transpose(emit_ta.stack(), [1,0,2])
+        outputs = tf.compat.v1.transpose(emit_ta.stack(), [1,0,2])
         return outputs, state
 
     def decoder_g(self, initial_state):
-        batch_size = tf.shape(self.encoder_input)[0]
-        encoder_len = tf.shape(self.encoder_input)[1]
+        batch_size = tf.compat.v1.shape(self.encoder_input)[0]
+        encoder_len = tf.compat.v1.shape(self.encoder_input)[1]
 
-        time = tf.constant(0, dtype=tf.int32)
+        time = tf.compat.v1.constant(0, dtype=tf.compat.v1.int32)
         h0 = initial_state
-        f0 = tf.zeros([batch_size], dtype=tf.bool)
-        x0 = tf.nn.embedding_lookup(self.embedding, tf.fill([batch_size], self.start_token))
-        emit_ta = tf.TensorArray(dtype=tf.float32, dynamic_size=True, size=0)
-        att_ta = tf.TensorArray(dtype=tf.float32, dynamic_size=True, size=0)
+        f0 = tf.compat.v1.zeros([batch_size], dtype=tf.compat.v1.bool)
+        x0 = tf.compat.v1.nn.embedding_lookup(self.embedding, tf.compat.v1.fill([batch_size], self.start_token))
+        emit_ta = tf.compat.v1.TensorArray(dtype=tf.compat.v1.float32, dynamic_size=True, size=0)
+        att_ta = tf.compat.v1.TensorArray(dtype=tf.compat.v1.float32, dynamic_size=True, size=0)
 
         def loop_fn(t, x_t, s_t, emit_ta, att_ta, finished):
             o_t, s_nt = self.dec_lstm(x_t, s_t, finished)
@@ -254,19 +254,19 @@ class SeqUnit(object):
             o_t = self.dec_out(o_t, finished)
             emit_ta = emit_ta.write(t, o_t)
             att_ta = att_ta.write(t, w_t)
-            next_token = tf.arg_max(o_t, 1)
-            x_nt = tf.nn.embedding_lookup(self.embedding, next_token)
-            finished = tf.logical_or(finished, tf.equal(next_token, self.stop_token))
-            finished = tf.logical_or(finished, tf.greater_equal(t, self.max_length))
+            next_token = tf.compat.v1.arg_max(o_t, 1)
+            x_nt = tf.compat.v1.nn.embedding_lookup(self.embedding, next_token)
+            finished = tf.compat.v1.logical_or(finished, tf.compat.v1.equal(next_token, self.stop_token))
+            finished = tf.compat.v1.logical_or(finished, tf.compat.v1.greater_equal(t, self.max_length))
             return t+1, x_nt, s_nt, emit_ta, att_ta, finished
 
-        _, _, state, emit_ta, att_ta, _ = tf.while_loop(
-            cond=lambda _1, _2, _3, _4, _5, finished: tf.logical_not(tf.reduce_all(finished)),
+        _, _, state, emit_ta, att_ta, _ = tf.compat.v1.while_loop(
+            cond=lambda _1, _2, _3, _4, _5, finished: tf.compat.v1.logical_not(tf.compat.v1.reduce_all(finished)),
             body=loop_fn,
             loop_vars=(time, x0, h0, emit_ta, att_ta, f0))
 
-        outputs = tf.transpose(emit_ta.stack(), [1,0,2])
-        pred_tokens = tf.arg_max(outputs, 2)
+        outputs = tf.compat.v1.transpose(emit_ta.stack(), [1,0,2])
+        pred_tokens = tf.compat.v1.arg_max(outputs, 2)
         atts = att_ta.stack()
         return pred_tokens, atts
 
@@ -275,69 +275,69 @@ class SeqUnit(object):
 
         def beam_init():
             # return beam_seqs_1 beam_probs_1 cand_seqs_1 cand_prob_1 next_states time
-            time_1 = tf.constant(1, dtype=tf.int32)
-            beam_seqs_0 = tf.constant([[self.start_token]]*beam_size)
-            beam_probs_0 = tf.constant([0.]*beam_size)
+            time_1 = tf.compat.v1.constant(1, dtype=tf.compat.v1.int32)
+            beam_seqs_0 = tf.compat.v1.constant([[self.start_token]]*beam_size)
+            beam_probs_0 = tf.compat.v1.constant([0.]*beam_size)
 
-            cand_seqs_0 = tf.constant([[self.start_token]])
-            cand_probs_0 = tf.constant([-3e38])
+            cand_seqs_0 = tf.compat.v1.constant([[self.start_token]])
+            cand_probs_0 = tf.compat.v1.constant([-3e38])
 
-            beam_seqs_0._shape = tf.TensorShape((None, None))
-            beam_probs_0._shape = tf.TensorShape((None,))
-            cand_seqs_0._shape = tf.TensorShape((None, None))
-            cand_probs_0._shape = tf.TensorShape((None,))
+            beam_seqs_0._shape = tf.compat.v1.TensorShape((None, None))
+            beam_probs_0._shape = tf.compat.v1.TensorShape((None,))
+            cand_seqs_0._shape = tf.compat.v1.TensorShape((None, None))
+            cand_probs_0._shape = tf.compat.v1.TensorShape((None,))
             
             inputs = [self.start_token]
-            x_t = tf.nn.embedding_lookup(self.embedding, inputs)
+            x_t = tf.compat.v1.nn.embedding_lookup(self.embedding, inputs)
             print(x_t.get_shape().as_list())
             o_t, s_nt = self.dec_lstm(x_t, initial_state)
             o_t, w_t = self.att_layer(o_t)
             o_t = self.dec_out(o_t)
             print(s_nt[0].get_shape().as_list())
-            # initial_state = tf.reshape(initial_state, [1,-1])
-            logprobs2d = tf.nn.log_softmax(o_t)
-            total_probs = logprobs2d + tf.reshape(beam_probs_0, [-1, 1])
-            total_probs_noEOS = tf.concat([tf.slice(total_probs, [0, 0], [1, self.stop_token]),
-                               tf.tile([[-3e38]], [1, 1]),
-                               tf.slice(total_probs, [0, self.stop_token + 1],
+            # initial_state = tf.compat.v1.reshape(initial_state, [1,-1])
+            logprobs2d = tf.compat.v1.nn.log_softmax(o_t)
+            total_probs = logprobs2d + tf.compat.v1.reshape(beam_probs_0, [-1, 1])
+            total_probs_noEOS = tf.compat.v1.concat([tf.compat.v1.slice(total_probs, [0, 0], [1, self.stop_token]),
+                               tf.compat.v1.tile([[-3e38]], [1, 1]),
+                               tf.compat.v1.slice(total_probs, [0, self.stop_token + 1],
                                         [1, self.target_vocab - self.stop_token - 1])], 1)
-            flat_total_probs = tf.reshape(total_probs_noEOS, [-1])
-            print flat_total_probs.get_shape().as_list()
+            flat_total_probs = tf.compat.v1.reshape(total_probs_noEOS, [-1])
+            print(flat_total_probs.get_shape().as_list())
 
-            beam_k = tf.minimum(tf.size(flat_total_probs), beam_size)
-            next_beam_probs, top_indices = tf.nn.top_k(flat_total_probs, k=beam_k)
+            beam_k = tf.compat.v1.minimum(tf.compat.v1.size(flat_total_probs), beam_size)
+            next_beam_probs, top_indices = tf.compat.v1.nn.top_k(flat_total_probs, k=beam_k)
 
-            next_bases = tf.floordiv(top_indices, self.target_vocab)
-            next_mods = tf.mod(top_indices, self.target_vocab)
+            next_bases = tf.compat.v1.floordiv(top_indices, self.target_vocab)
+            next_mods = tf.compat.v1.mod(top_indices, self.target_vocab)
 
-            next_beam_seqs = tf.concat([tf.gather(beam_seqs_0, next_bases),
-                                        tf.reshape(next_mods, [-1, 1])], 1)
+            next_beam_seqs = tf.compat.v1.concat([tf.compat.v1.gather(beam_seqs_0, next_bases),
+                                        tf.compat.v1.reshape(next_mods, [-1, 1])], 1)
 
-            cand_seqs_pad = tf.pad(cand_seqs_0, [[0, 0], [0, 1]])
-            beam_seqs_EOS = tf.pad(beam_seqs_0, [[0, 0], [0, 1]])
-            new_cand_seqs = tf.concat([cand_seqs_pad, beam_seqs_EOS], 0)
-            print new_cand_seqs.get_shape().as_list()
+            cand_seqs_pad = tf.compat.v1.pad(cand_seqs_0, [[0, 0], [0, 1]])
+            beam_seqs_EOS = tf.compat.v1.pad(beam_seqs_0, [[0, 0], [0, 1]])
+            new_cand_seqs = tf.compat.v1.concat([cand_seqs_pad, beam_seqs_EOS], 0)
+            print(new_cand_seqs.get_shape().as_list())
 
-            EOS_probs = tf.slice(total_probs, [0, self.stop_token], [beam_size, 1])
-            new_cand_probs = tf.concat([cand_probs_0, tf.reshape(EOS_probs, [-1])], 0)
-            cand_k = tf.minimum(tf.size(new_cand_probs), self.beam_size)
-            next_cand_probs, next_cand_indices = tf.nn.top_k(new_cand_probs, k=cand_k)
-            next_cand_seqs = tf.gather(new_cand_seqs, next_cand_indices)
+            EOS_probs = tf.compat.v1.slice(total_probs, [0, self.stop_token], [beam_size, 1])
+            new_cand_probs = tf.compat.v1.concat([cand_probs_0, tf.compat.v1.reshape(EOS_probs, [-1])], 0)
+            cand_k = tf.compat.v1.minimum(tf.compat.v1.size(new_cand_probs), self.beam_size)
+            next_cand_probs, next_cand_indices = tf.compat.v1.nn.top_k(new_cand_probs, k=cand_k)
+            next_cand_seqs = tf.compat.v1.gather(new_cand_seqs, next_cand_indices)
 
-            part_state_0 = tf.reshape(tf.stack([s_nt[0]]*beam_size), [beam_size, self.hidden_size])
-            part_state_1 = tf.reshape(tf.stack([s_nt[1]]*beam_size), [beam_size, self.hidden_size])
-            part_state_0._shape = tf.TensorShape((None, None))
-            part_state_1._shape = tf.TensorShape((None, None))
+            part_state_0 = tf.compat.v1.reshape(tf.compat.v1.stack([s_nt[0]]*beam_size), [beam_size, self.hidden_size])
+            part_state_1 = tf.compat.v1.reshape(tf.compat.v1.stack([s_nt[1]]*beam_size), [beam_size, self.hidden_size])
+            part_state_0._shape = tf.compat.v1.TensorShape((None, None))
+            part_state_1._shape = tf.compat.v1.TensorShape((None, None))
             next_states = (part_state_0, part_state_1)
-            print next_states[0].get_shape().as_list()
+            print(next_states[0].get_shape().as_list())
             return next_beam_seqs, next_beam_probs, next_cand_seqs, next_cand_probs, next_states, time_1
 
         beam_seqs_1, beam_probs_1, cand_seqs_1, cand_probs_1, states_1, time_1 = beam_init()
-        beam_seqs_1._shape = tf.TensorShape((None, None))
-        beam_probs_1._shape = tf.TensorShape((None,))
-        cand_seqs_1._shape = tf.TensorShape((None, None))
-        cand_probs_1._shape = tf.TensorShape((None,))
-        # states_1._shape = tf.TensorShape((2, None, self.hidden_size))
+        beam_seqs_1._shape = tf.compat.v1.TensorShape((None, None))
+        beam_probs_1._shape = tf.compat.v1.TensorShape((None,))
+        cand_seqs_1._shape = tf.compat.v1.TensorShape((None, None))
+        cand_probs_1._shape = tf.compat.v1.TensorShape((None,))
+        # states_1._shape = tf.compat.v1.TensorShape((2, None, self.hidden_size))
         def beam_step(beam_seqs, beam_probs, cand_seqs, cand_probs, states, time):
             '''
             beam_seqs : [beam_size, time]
@@ -346,58 +346,58 @@ class SeqUnit(object):
             cand_probs: [beam_size, ]
             states : [beam_size * hidden_size, beam_size * hidden_size]
             '''
-            inputs = tf.reshape(tf.slice(beam_seqs, [0, time], [beam_size, 1]), [beam_size])
+            inputs = tf.compat.v1.reshape(tf.compat.v1.slice(beam_seqs, [0, time], [beam_size, 1]), [beam_size])
             # print inputs.get_shape().as_list()
-            x_t = tf.nn.embedding_lookup(self.embedding, inputs)
+            x_t = tf.compat.v1.nn.embedding_lookup(self.embedding, inputs)
             # print(x_t.get_shape().as_list())
             o_t, s_nt = self.dec_lstm(x_t, states)
             o_t, w_t = self.att_layer(o_t)
             o_t = self.dec_out(o_t)
-            logprobs2d = tf.nn.log_softmax(o_t)
-            print logprobs2d.get_shape().as_list()
-            total_probs = logprobs2d + tf.reshape(beam_probs, [-1, 1])
-            print total_probs.get_shape().as_list()
-            total_probs_noEOS = tf.concat([tf.slice(total_probs, [0, 0], [beam_size, self.stop_token]),
-                                           tf.tile([[-3e38]], [beam_size, 1]),
-                                           tf.slice(total_probs, [0, self.stop_token + 1],
+            logprobs2d = tf.compat.v1.nn.log_softmax(o_t)
+            print(logprobs2d.get_shape().as_list())
+            total_probs = logprobs2d + tf.compat.v1.reshape(beam_probs, [-1, 1])
+            print(total_probs.get_shape().as_list())
+            total_probs_noEOS = tf.compat.v1.concat([tf.compat.v1.slice(total_probs, [0, 0], [beam_size, self.stop_token]),
+                                           tf.compat.v1.tile([[-3e38]], [beam_size, 1]),
+                                           tf.compat.v1.slice(total_probs, [0, self.stop_token + 1],
                                                     [beam_size, self.target_vocab - self.stop_token - 1])], 1)
-            print total_probs_noEOS.get_shape().as_list()
-            flat_total_probs = tf.reshape(total_probs_noEOS, [-1])
-            print flat_total_probs.get_shape().as_list()
+            print(total_probs_noEOS.get_shape().as_list())
+            flat_total_probs = tf.compat.v1.reshape(total_probs_noEOS, [-1])
+            print(flat_total_probs.get_shape().as_list())
 
-            beam_k = tf.minimum(tf.size(flat_total_probs), beam_size)
-            next_beam_probs, top_indices = tf.nn.top_k(flat_total_probs, k=beam_k)
-            print next_beam_probs.get_shape().as_list()
+            beam_k = tf.compat.v1.minimum(tf.compat.v1.size(flat_total_probs), beam_size)
+            next_beam_probs, top_indices = tf.compat.v1.nn.top_k(flat_total_probs, k=beam_k)
+            print(next_beam_probs.get_shape().as_list())
 
-            next_bases = tf.floordiv(top_indices, self.target_vocab)
-            next_mods = tf.mod(top_indices, self.target_vocab)
-            print next_mods.get_shape().as_list()
+            next_bases = tf.compat.v1.floordiv(top_indices, self.target_vocab)
+            next_mods = tf.compat.v1.mod(top_indices, self.target_vocab)
+            print(next_mods.get_shape().as_list())
 
-            next_beam_seqs = tf.concat([tf.gather(beam_seqs, next_bases),
-                                        tf.reshape(next_mods, [-1, 1])], 1)
-            next_states = (tf.gather(s_nt[0], next_bases), tf.gather(s_nt[1], next_bases))
-            print next_beam_seqs.get_shape().as_list()
+            next_beam_seqs = tf.compat.v1.concat([tf.compat.v1.gather(beam_seqs, next_bases),
+                                        tf.compat.v1.reshape(next_mods, [-1, 1])], 1)
+            next_states = (tf.compat.v1.gather(s_nt[0], next_bases), tf.compat.v1.gather(s_nt[1], next_bases))
+            print(next_beam_seqs.get_shape().as_list())
 
-            cand_seqs_pad = tf.pad(cand_seqs, [[0, 0], [0, 1]])
-            beam_seqs_EOS = tf.pad(beam_seqs, [[0, 0], [0, 1]])
-            new_cand_seqs = tf.concat([cand_seqs_pad, beam_seqs_EOS], 0) 
-            print new_cand_seqs.get_shape().as_list()
+            cand_seqs_pad = tf.compat.v1.pad(cand_seqs, [[0, 0], [0, 1]])
+            beam_seqs_EOS = tf.compat.v1.pad(beam_seqs, [[0, 0], [0, 1]])
+            new_cand_seqs = tf.compat.v1.concat([cand_seqs_pad, beam_seqs_EOS], 0) 
+            print(new_cand_seqs.get_shape().as_list())
 
-            EOS_probs = tf.slice(total_probs, [0, self.stop_token], [beam_size, 1])
-            new_cand_probs = tf.concat([cand_probs, tf.reshape(EOS_probs, [-1])], 0)
-            cand_k = tf.minimum(tf.size(new_cand_probs), self.beam_size)
-            next_cand_probs, next_cand_indices = tf.nn.top_k(new_cand_probs, k=cand_k)
-            next_cand_seqs = tf.gather(new_cand_seqs, next_cand_indices)
+            EOS_probs = tf.compat.v1.slice(total_probs, [0, self.stop_token], [beam_size, 1])
+            new_cand_probs = tf.compat.v1.concat([cand_probs, tf.compat.v1.reshape(EOS_probs, [-1])], 0)
+            cand_k = tf.compat.v1.minimum(tf.compat.v1.size(new_cand_probs), self.beam_size)
+            next_cand_probs, next_cand_indices = tf.compat.v1.nn.top_k(new_cand_probs, k=cand_k)
+            next_cand_seqs = tf.compat.v1.gather(new_cand_seqs, next_cand_indices)
 
             return next_beam_seqs, next_beam_probs, next_cand_seqs, next_cand_probs, next_states, time+1
         
         def beam_cond(beam_probs, beam_seqs, cand_probs, cand_seqs, state, time):
-            length =  (tf.reduce_max(beam_probs) >= tf.reduce_min(cand_probs))
-            return tf.logical_and(length, tf.less(time, 60) )
-            # return tf.less(time, 18)
+            length =  (tf.compat.v1.reduce_max(beam_probs) >= tf.compat.v1.reduce_min(cand_probs))
+            return tf.compat.v1.logical_and(length, tf.compat.v1.less(time, 60) )
+            # return tf.compat.v1.less(time, 18)
 
         loop_vars = [beam_seqs_1, beam_probs_1, cand_seqs_1, cand_probs_1, states_1, time_1]
-        ret_vars = tf.while_loop(cond=beam_cond, body=beam_step, loop_vars=loop_vars, back_prop=False)
+        ret_vars = tf.compat.v1.while_loop(cond=beam_cond, body=beam_step, loop_vars=loop_vars, back_prop=False)
         beam_seqs_all, beam_probs_all, cand_seqs_all, cand_probs_all, _, time_all = ret_vars
 
         return beam_seqs_all, beam_probs_all, cand_seqs_all, cand_probs_all

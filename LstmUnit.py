@@ -14,29 +14,29 @@ class LstmUnit(object):
         self.scope_name = scope_name
         self.params = {}
 
-        with tf.variable_scope(scope_name):
-            self.W = tf.get_variable('W', [self.input_size+self.hidden_size, 4*self.hidden_size])
-            self.b = tf.get_variable('b', [4*self.hidden_size], initializer=tf.zeros_initializer([4*self.hidden_size]), dtype=tf.float32)
+        with tf.compat.v1.variable_scope(scope_name):
+            self.W = tf.compat.v1.get_variable('W', [self.input_size+self.hidden_size, 4*self.hidden_size])
+            self.b = tf.compat.v1.get_variable('b', [4*self.hidden_size])
 
         self.params.update({'W':self.W, 'b':self.b})
 
     def __call__(self, x, s, finished = None):
         h_prev, c_prev = s
 
-        x = tf.concat([x, h_prev], 1)
-        i, j, f, o = tf.split(tf.nn.xw_plus_b(x, self.W, self.b), 4, 1)
+        x = tf.compat.v1.concat([x, h_prev], 1)
+        i, j, f, o = tf.compat.v1.split(tf.compat.v1.nn.xw_plus_b(x, self.W, self.b), 4, 1)
 
         # Final Memory cell
-        c = tf.sigmoid(f+1.0) * c_prev + tf.sigmoid(i) * tf.tanh(j)
-        h = tf.sigmoid(o) * tf.tanh(c)
+        c = tf.compat.v1.sigmoid(f+1.0) * c_prev + tf.compat.v1.sigmoid(i) * tf.compat.v1.tanh(j)
+        h = tf.compat.v1.sigmoid(o) * tf.compat.v1.tanh(c)
 
         out, state = h, (h, c)
         if finished is not None:
-            out = tf.where(finished, tf.zeros_like(h), h)
-            state = (tf.where(finished, h_prev, h), tf.where(finished, c_prev, c))
-            # out = tf.multiply(1 - finished, h)
-            # state = (tf.multiply(1 - finished, h) + tf.multiply(finished, h_prev),
-            #          tf.multiply(1 - finished, c) + tf.multiply(finished, c_prev))
+            out = tf.compat.v1.where(finished, tf.compat.v1.zeros_like(h), h)
+            state = (tf.compat.v1.where(finished, h_prev, h), tf.compat.v1.where(finished, c_prev, c))
+            # out = tf.compat.v1.multiply(1 - finished, h)
+            # state = (tf.compat.v1.multiply(1 - finished, h) + tf.compat.v1.multiply(finished, h_prev),
+            #          tf.compat.v1.multiply(1 - finished, c) + tf.compat.v1.multiply(finished, c_prev))
 
         return out, state
 

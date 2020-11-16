@@ -15,11 +15,11 @@ class fgateLstmUnit(object):
         self.scope_name = scope_name
         self.params = {}
 
-        with tf.variable_scope(scope_name):
-            self.W = tf.get_variable('W', [self.input_size+self.hidden_size, 4*self.hidden_size])
-            self.b = tf.get_variable('b', [4*self.hidden_size], initializer=tf.zeros_initializer(), dtype=tf.float32)
-            self.W1 = tf.get_variable('W1', [self.field_size, 2*self.hidden_size])
-            self.b1 = tf.get_variable('b1', [2*hidden_size], initializer=tf.zeros_initializer(), dtype=tf.float32)
+        with tf.compat.v1.variable_scope(scope_name):
+            self.W = tf.compat.v1.get_variable('W', [self.input_size+self.hidden_size, 4*self.hidden_size])
+            self.b = tf.compat.v1.get_variable('b', [4*self.hidden_size], initializer=tf.compat.v1.zeros_initializer(), dtype=tf.compat.v1.float32)
+            self.W1 = tf.compat.v1.get_variable('W1', [self.field_size, 2*self.hidden_size])
+            self.b1 = tf.compat.v1.get_variable('b1', [2*hidden_size], initializer=tf.compat.v1.zeros_initializer(), dtype=tf.compat.v1.float32)
         self.params.update({'W':self.W, 'b':self.b, 'W1':self.W1, 'b1':self.b1})
 
     def __call__(self, x, fd, s, finished = None):
@@ -31,21 +31,21 @@ class fgateLstmUnit(object):
         """
         h_prev, c_prev = s  # batch * hidden_size
 
-        x = tf.concat([x, h_prev], 1)
-        # fd = tf.concat([fd, h_prev], 1)
-        i, j, f, o = tf.split(tf.nn.xw_plus_b(x, self.W, self.b), 4, 1)
-        r, d = tf.split(tf.nn.xw_plus_b(fd, self.W1, self.b1), 2, 1)
+        x = tf.compat.v1.concat([x, h_prev], 1)
+        # fd = tf.compat.v1.concat([fd, h_prev], 1)
+        i, j, f, o = tf.compat.v1.split(tf.compat.v1.nn.xw_plus_b(x, self.W, self.b), 4, 1)
+        r, d = tf.compat.v1.split(tf.compat.v1.nn.xw_plus_b(fd, self.W1, self.b1), 2, 1)
         # Final Memory cell
-        c = tf.sigmoid(f+1.0) * c_prev + tf.sigmoid(i) * tf.tanh(j) + tf.sigmoid(r) * tf.tanh(d)  # batch * hidden_size
-        h = tf.sigmoid(o) * tf.tanh(c)
+        c = tf.compat.v1.sigmoid(f+1.0) * c_prev + tf.compat.v1.sigmoid(i) * tf.compat.v1.tanh(j) + tf.compat.v1.sigmoid(r) * tf.compat.v1.tanh(d)  # batch * hidden_size
+        h = tf.compat.v1.sigmoid(o) * tf.compat.v1.tanh(c)
 
         out, state = h, (h, c)
         if finished is not None:
-            out = tf.where(finished, tf.zeros_like(h), h)
-            state = (tf.where(finished, h_prev, h), tf.where(finished, c_prev, c))
-            # out = tf.multiply(1 - finished, h)
-            # state = (tf.multiply(1 - finished, h) + tf.multiply(finished, h_prev),
-            #          tf.multiply(1 - finished, c) + tf.multiply(finished, c_prev))
+            out = tf.compat.v1.where(finished, tf.compat.v1.zeros_like(h), h)
+            state = (tf.compat.v1.where(finished, h_prev, h), tf.compat.v1.where(finished, c_prev, c))
+            # out = tf.compat.v1.multiply(1 - finished, h)
+            # state = (tf.compat.v1.multiply(1 - finished, h) + tf.compat.v1.multiply(finished, h_prev),
+            #          tf.compat.v1.multiply(1 - finished, c) + tf.compat.v1.multiply(finished, c_prev))
 
         return out, state
 
