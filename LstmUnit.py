@@ -16,7 +16,7 @@ class LstmUnit(object):
 
         with tf.compat.v1.variable_scope(scope_name):
             self.W = tf.compat.v1.get_variable('W', [self.input_size+self.hidden_size, 4*self.hidden_size])
-            self.b = tf.compat.v1.get_variable('b', [4*self.hidden_size])
+            self.b = tf.compat.v1.get_variable('b', [4*self.hidden_size], initializer=tf.compat.v1.zeros_initializer(), dtype=tf.compat.v1.float32)
 
         self.params.update({'W':self.W, 'b':self.b})
 

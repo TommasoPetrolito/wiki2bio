@@ -28,7 +28,7 @@ class DataLoader(object):
         self.test_set = self.load_data(self.test_data_path)
         # self.small_test_set = self.load_data(self.small_test_data_path)
         self.dev_set = self.load_data(self.dev_data_path)
-        print ('Reading datasets comsumes %.3f seconds' % (time.time() - start_time))
+        print(('Reading datasets comsumes %.3f seconds' % (time.time() - start_time)))
 
     def load_data(self, path):
         summary_path, text_path, field_path, pos_path, rpos_path = path
@@ -43,7 +43,7 @@ class DataLoader(object):
             fields = fields[:self.limits]
             poses = poses[:self.limits]
             rposes = rposes[:self.limits]
-        print(summaries[0].strip().split(' '))
+        print((summaries[0].strip().split(' ')))
         summaries = [list(map(int, summary.strip().split(' '))) for summary in summaries]
         texts = [list(map(int, text.strip().split(' '))) for text in texts]
         fields = [list(map(int, field.strip().split(' '))) for field in fields]

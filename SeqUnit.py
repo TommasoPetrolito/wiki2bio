@@ -141,7 +141,7 @@ class SeqUnit(object):
         tvars = tf.compat.v1.trainable_variables()
         grads, _ = tf.compat.v1.clip_by_global_norm(tf.compat.v1.gradients(self.mean_loss, tvars), self.grad_clip)
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
-        self.train_op = optimizer.apply_gradients(zip(grads, tvars))
+        self.train_op = optimizer.apply_gradients(list(zip(grads, tvars)))
 
     def encoder(self, inputs, inputs_len):
         batch_size = tf.compat.v1.shape(self.encoder_input)[0]
@@ -289,11 +289,11 @@ class SeqUnit(object):
             
             inputs = [self.start_token]
             x_t = tf.compat.v1.nn.embedding_lookup(self.embedding, inputs)
-            print(x_t.get_shape().as_list())
+            print((x_t.get_shape().as_list()))
             o_t, s_nt = self.dec_lstm(x_t, initial_state)
             o_t, w_t = self.att_layer(o_t)
             o_t = self.dec_out(o_t)
-            print(s_nt[0].get_shape().as_list())
+            print((s_nt[0].get_shape().as_list()))
             # initial_state = tf.compat.v1.reshape(initial_state, [1,-1])
             logprobs2d = tf.compat.v1.nn.log_softmax(o_t)
             total_probs = logprobs2d + tf.compat.v1.reshape(beam_probs_0, [-1, 1])
@@ -302,7 +302,7 @@ class SeqUnit(object):
                                tf.compat.v1.slice(total_probs, [0, self.stop_token + 1],
                                         [1, self.target_vocab - self.stop_token - 1])], 1)
             flat_total_probs = tf.compat.v1.reshape(total_probs_noEOS, [-1])
-            print(flat_total_probs.get_shape().as_list())
+            print((flat_total_probs.get_shape().as_list()))
 
             beam_k = tf.compat.v1.minimum(tf.compat.v1.size(flat_total_probs), beam_size)
             next_beam_probs, top_indices = tf.compat.v1.nn.top_k(flat_total_probs, k=beam_k)
@@ -316,7 +316,7 @@ class SeqUnit(object):
             cand_seqs_pad = tf.compat.v1.pad(cand_seqs_0, [[0, 0], [0, 1]])
             beam_seqs_EOS = tf.compat.v1.pad(beam_seqs_0, [[0, 0], [0, 1]])
             new_cand_seqs = tf.compat.v1.concat([cand_seqs_pad, beam_seqs_EOS], 0)
-            print(new_cand_seqs.get_shape().as_list())
+            print((new_cand_seqs.get_shape().as_list()))
 
             EOS_probs = tf.compat.v1.slice(total_probs, [0, self.stop_token], [beam_size, 1])
             new_cand_probs = tf.compat.v1.concat([cand_probs_0, tf.compat.v1.reshape(EOS_probs, [-1])], 0)
@@ -329,7 +329,7 @@ class SeqUnit(object):
             part_state_0._shape = tf.compat.v1.TensorShape((None, None))
             part_state_1._shape = tf.compat.v1.TensorShape((None, None))
             next_states = (part_state_0, part_state_1)
-            print(next_states[0].get_shape().as_list())
+            print((next_states[0].get_shape().as_list()))
             return next_beam_seqs, next_beam_probs, next_cand_seqs, next_cand_probs, next_states, time_1
 
         beam_seqs_1, beam_probs_1, cand_seqs_1, cand_probs_1, states_1, time_1 = beam_init()
@@ -354,34 +354,34 @@ class SeqUnit(object):
             o_t, w_t = self.att_layer(o_t)
             o_t = self.dec_out(o_t)
             logprobs2d = tf.compat.v1.nn.log_softmax(o_t)
-            print(logprobs2d.get_shape().as_list())
+            print((logprobs2d.get_shape().as_list()))
             total_probs = logprobs2d + tf.compat.v1.reshape(beam_probs, [-1, 1])
-            print(total_probs.get_shape().as_list())
+            print((total_probs.get_shape().as_list()))
             total_probs_noEOS = tf.compat.v1.concat([tf.compat.v1.slice(total_probs, [0, 0], [beam_size, self.stop_token]),
                                            tf.compat.v1.tile([[-3e38]], [beam_size, 1]),
                                            tf.compat.v1.slice(total_probs, [0, self.stop_token + 1],
                                                     [beam_size, self.target_vocab - self.stop_token - 1])], 1)
-            print(total_probs_noEOS.get_shape().as_list())
+            print((total_probs_noEOS.get_shape().as_list()))
             flat_total_probs = tf.compat.v1.reshape(total_probs_noEOS, [-1])
-            print(flat_total_probs.get_shape().as_list())
+            print((flat_total_probs.get_shape().as_list()))
 
             beam_k = tf.compat.v1.minimum(tf.compat.v1.size(flat_total_probs), beam_size)
             next_beam_probs, top_indices = tf.compat.v1.nn.top_k(flat_total_probs, k=beam_k)
-            print(next_beam_probs.get_shape().as_list())
+            print((next_beam_probs.get_shape().as_list()))
 
             next_bases = tf.compat.v1.floordiv(top_indices, self.target_vocab)
             next_mods = tf.compat.v1.mod(top_indices, self.target_vocab)
-            print(next_mods.get_shape().as_list())
+            print((next_mods.get_shape().as_list()))
 
             next_beam_seqs = tf.compat.v1.concat([tf.compat.v1.gather(beam_seqs, next_bases),
                                         tf.compat.v1.reshape(next_mods, [-1, 1])], 1)
             next_states = (tf.compat.v1.gather(s_nt[0], next_bases), tf.compat.v1.gather(s_nt[1], next_bases))
-            print(next_beam_seqs.get_shape().as_list())
+            print((next_beam_seqs.get_shape().as_list()))
 
             cand_seqs_pad = tf.compat.v1.pad(cand_seqs, [[0, 0], [0, 1]])
             beam_seqs_EOS = tf.compat.v1.pad(beam_seqs, [[0, 0], [0, 1]])
             new_cand_seqs = tf.compat.v1.concat([cand_seqs_pad, beam_seqs_EOS], 0) 
-            print(new_cand_seqs.get_shape().as_list())
+            print((new_cand_seqs.get_shape().as_list()))
 
             EOS_probs = tf.compat.v1.slice(total_probs, [0, self.stop_token], [beam_size, 1])
             new_cand_probs = tf.compat.v1.concat([cand_probs, tf.compat.v1.reshape(EOS_probs, [-1])], 0)

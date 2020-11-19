@@ -118,10 +118,10 @@ def check_generated_box():
             if len(vval) != len(llab) or len(llab) != len(ppos) or len(ppos) != len(rrpos):
                 print (case)
                 print (val)
-                print (len(vval))
-                print (len(llab))
-                print (len(ppos))
-                print (len(rrpos))
+                print((len(vval)))
+                print((len(llab)))
+                print((len(ppos)))
+                print((len(rrpos)))
             assert len(vval) == len(llab)
             assert len(llab) == len(ppos)
             assert len(ppos) == len(rrpos)
@@ -150,13 +150,13 @@ class Vocab(object):
         vocab['END_TOKEN'] = 2
         vocab['UNK_TOKEN'] = 3
         cnt = 4
-        with open("original_data/word_vocab.txt", "r") as v:
+        with open("original_data/word_vocab.txt", "rb") as v:
             for line in v:
                 word = line.strip().split()[0]
                 vocab[word] = cnt
                 cnt += 1
         self._word2id = vocab
-        self._id2word = {value: key for key, value in vocab.items()}
+        self._id2word = {value: key for key, value in list(vocab.items())}
 
         key_map = dict()
         key_map['PAD'] = 0
@@ -164,13 +164,13 @@ class Vocab(object):
         key_map['END_TOKEN'] = 2
         key_map['UNK_TOKEN'] = 3
         cnt = 4
-        with open("original_data/field_vocab.txt", "r") as v:
+        with open("original_data/field_vocab.txt", "rb") as v:
             for line in v:
                 key = line.strip().split()[0]
                 key_map[key] = cnt
                 cnt += 1
         self._key2id = key_map
-        self._id2key = {value: key for key, value in key_map.items()}
+        self._id2key = {value: key for key, value in list(key_map.items())}
 
     def word2id(self, word):
         ans = self._word2id[word] if word in self._word2id else 3
@@ -246,19 +246,19 @@ def preprocess():
     split_infobox()
     reverse_pos()
     duration = time.time() - time_start
-    print("extract finished in %.3f seconds" % float(duration))
+    print(("extract finished in %.3f seconds" % float(duration)))
 
     print("spliting test and valid summaries for ROUGE evaluation ...")
     time_start = time.time()
     split_summary_for_rouge()
     duration = time.time() - time_start
-    print("split finished in %.3f seconds" % float(duration))
+    print(("split finished in %.3f seconds" % float(duration)))
 
     print("turning words and field types to ids ...")
     time_start = time.time()
     table2id()
     duration = time.time() - time_start
-    print("idlization finished in %.3f seconds" % float(duration))
+    print(("idlization finished in %.3f seconds" % float(duration)))
 
 
 def make_dirs():

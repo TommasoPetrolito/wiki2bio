@@ -127,7 +127,7 @@ def evaluate(sess, dataloader, model, ksave_dir, mode='valid'):
         evalset = dataloader.test_set
     
     # for copy words from the infoboxes
-    texts = open(texts_path, 'r').read().strip().split('\n')
+    texts = open(texts_path, 'rb').read().strip().split(b'\n')
     texts = [list(t.strip().split()) for t in texts]
     v = Vocab()
 
@@ -166,7 +166,7 @@ def evaluate(sess, dataloader, model, ksave_dir, mode='valid'):
 
 
     for tk in range(k):
-        with open(gold_path + str(tk), 'r') as g:
+        with open(gold_path + str(tk), 'rb') as g:
             gold_list.append([g.read().strip().split()])
 
     gold_set = [[gold_path + str(i)] for i in range(k)]
